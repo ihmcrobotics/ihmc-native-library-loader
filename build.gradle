@@ -1,0 +1,87 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+repositories{
+	mavenCentral()
+}
+
+dependencies{
+   compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+}
+
+
+sourceSets
+{
+    main
+    {
+        java
+        {
+            srcDirs = ['src/']
+        }
+    }
+}
+
+sourceCompatibility = 1.7
+version = 1.0
+
+jar {
+   manifest {
+      attributes(
+      "Created-By": "IHMC Gradle Build Script",
+      "Implementation-Title": project.name,
+      "Implementation-Version": project.version,
+      "Implementation-Vendor": "IHMC",
+      
+      "Bundle-Name": project.name,
+      "Bundle-Version": project.version,
+      "Bundle-License": "http://www.apache.org/licenses/LICENSE-2.0.txt",
+      "Bundle-Vendor": "IHMC")
+   }
+}
+
+task sourceJar(type: Jar) {
+	from sourceSets.main.allJava
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+
+			groupId 'us.ihmc'
+			artifactId 'IHMCNativeLibraryLoader'
+			version "$version"
+			from components.java
+			
+			pom.withXml {
+                            asNode().children().last() + {
+                                resolveStrategy = Closure.DELEGATE_FIRST
+                                name 'IHMCNativeLibraryLoader'
+                                url 'https://stash.ihmc.us/projects/JNI/repos/ihmcnativelibraryloader/'
+                                licenses {
+                                    license {
+                                        name 'Apache License, Version 2.0'
+                                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                                        distribution 'repo'
+                                    }
+                                }
+                            }
+
+                        }
+			
+			artifact sourceJar {
+				classifier "sources"
+			}
+		}
+
+	}
+
+	repositories {
+		maven {
+			credentials {
+				username project.hasProperty('nexus_username')?"${nexus_username}":"invalid"
+				password project.hasProperty('nexus_password')?"${nexus_password}":"invalid"
+			}
+			url "https://bengal.ihmc.us/nexus/content/repositories/releases"
+		}
+	}
+}
