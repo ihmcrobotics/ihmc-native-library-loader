@@ -6,6 +6,7 @@ repositories{
 }
 
 dependencies{
+   compile group: 'junit', name: 'junit', version: '4.11'
    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
 }
 
@@ -19,6 +20,13 @@ sourceSets
             srcDirs = ['src/']
         }
     }
+    test
+    {
+	java
+	{
+	    srcDirs = ['test/']
+	}
+    }	
 }
 
 sourceCompatibility = 1.7
