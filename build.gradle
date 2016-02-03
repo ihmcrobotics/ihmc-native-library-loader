@@ -56,15 +56,15 @@ publishing {
 		mavenJava(MavenPublication) {
 
 			groupId 'us.ihmc'
-			artifactId 'IHMCNativeLibraryLoader'
+			artifactId project.name
 			version "$version"
 			from components.java
 			
 			pom.withXml {
                             asNode().children().last() + {
                                 resolveStrategy = Closure.DELEGATE_FIRST
-                                name 'IHMCNativeLibraryLoader'
-                                url 'https://stash.ihmc.us/projects/JNI/repos/ihmcnativelibraryloader/'
+                                name project.name
+                                url 'https://github.com/ihmcrobotics/ihmc-native-library-loader'
                                 licenses {
                                     license {
                                         name 'Apache License, Version 2.0'
