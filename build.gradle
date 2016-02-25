@@ -1,7 +1,12 @@
+plugins {
+   id 'us.ihmc.gradle.ihmc-build' version '0.0.9'
+}
+
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
 repositories{
+	jcenter()
 	mavenCentral()
 }
 
@@ -26,11 +31,17 @@ sourceSets
 	{
 	    srcDirs = ['test/']
 	}
-    }	
+    }
 }
 
 sourceCompatibility = 1.7
 version = 1.0
+
+project.ext.fullVersion = version
+project.ext.vcsUrl = "https://github.com/ihmcrobotics/ihmc-native-library-loader"
+project.ext.licenseURL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+project.ext.licenseName = "Apache License, Version 2.0"
+project.ext.bintrayLicenseName = "Apache-2.0"
 
 jar {
    manifest {
@@ -39,7 +50,7 @@ jar {
       "Implementation-Title": project.name,
       "Implementation-Version": project.version,
       "Implementation-Vendor": "IHMC",
-      
+
       "Bundle-Name": project.name,
       "Bundle-Version": project.version,
       "Bundle-License": "http://www.apache.org/licenses/LICENSE-2.0.txt",
@@ -59,7 +70,7 @@ publishing {
 			artifactId project.name
 			version "$version"
 			from components.java
-			
+
 			pom.withXml {
                             asNode().children().last() + {
                                 resolveStrategy = Closure.DELEGATE_FIRST
@@ -75,21 +86,14 @@ publishing {
                             }
 
                         }
-			
+
 			artifact sourceJar {
 				classifier "sources"
 			}
 		}
 
 	}
-
-	repositories {
-		maven {
-			credentials {
-				username project.hasProperty('nexus_username')?"${nexus_username}":"invalid"
-				password project.hasProperty('nexus_password')?"${nexus_password}":"invalid"
-			}
-			url "https://bengal.ihmc.us/nexus/content/repositories/releases"
-		}
-	}
 }
+
+def labels = ['ihmc', 'robotics', 'java', 'jni', 'native-library']
+ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", labels)
