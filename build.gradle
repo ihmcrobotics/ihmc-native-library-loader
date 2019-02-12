@@ -1,99 +1,18 @@
 plugins {
-   id 'us.ihmc.gradle.ihmc-build' version '0.0.9'
+   id("us.ihmc.ihmc-build") version "0.15.5"
+   id("us.ihmc.ihmc-ci") version "4.8"
 }
 
-apply plugin: 'java'
-apply plugin: 'maven-publish'
+ihmc {
+   group = "us.ihmc"
+   version = "1.1"
+   vcsUrl = "https://github.com/ihmcrobotics/ihmc-native-library-loader"
+   openSource = true
 
-repositories{
-	jcenter()
-	mavenCentral()
+   configureDependencyResolution()
+   configurePublications()
 }
 
-dependencies{
-   compile group: 'junit', name: 'junit', version: '4.11'
-   compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+mainDependencies {
+   compile("org.apache.commons:commons-lang3:3.8.1")
 }
-
-
-sourceSets
-{
-    main
-    {
-        java
-        {
-            srcDirs = ['src/']
-        }
-    }
-    test
-    {
-	java
-	{
-	    srcDirs = ['test/']
-	}
-    }
-}
-
-sourceCompatibility = 1.7
-version = 1.0
-
-project.ext.fullVersion = version
-project.ext.vcsUrl = "https://github.com/ihmcrobotics/ihmc-native-library-loader"
-project.ext.licenseURL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-project.ext.licenseName = "Apache License, Version 2.0"
-project.ext.bintrayLicenseName = "Apache-2.0"
-
-jar {
-   manifest {
-      attributes(
-      "Created-By": "IHMC Gradle Build Script",
-      "Implementation-Title": project.name,
-      "Implementation-Version": project.version,
-      "Implementation-Vendor": "IHMC",
-
-      "Bundle-Name": project.name,
-      "Bundle-Version": project.version,
-      "Bundle-License": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "Bundle-Vendor": "IHMC")
-   }
-}
-
-task sourceJar(type: Jar) {
-	from sourceSets.main.allJava
-}
-
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-
-			groupId 'us.ihmc'
-			artifactId project.name
-			version "$version"
-			from components.java
-
-			pom.withXml {
-                            asNode().children().last() + {
-                                resolveStrategy = Closure.DELEGATE_FIRST
-                                name project.name
-                                url 'https://github.com/ihmcrobotics/ihmc-native-library-loader'
-                                licenses {
-                                    license {
-                                        name 'Apache License, Version 2.0'
-                                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                                        distribution 'repo'
-                                    }
-                                }
-                            }
-
-                        }
-
-			artifact sourceJar {
-				classifier "sources"
-			}
-		}
-
-	}
-}
-
-def labels = ['ihmc', 'robotics', 'java', 'jni', 'native-library']
-ihmc.configureForIHMCOpenSourceBintrayPublish(false, "mavenJava", "maven-release", labels)

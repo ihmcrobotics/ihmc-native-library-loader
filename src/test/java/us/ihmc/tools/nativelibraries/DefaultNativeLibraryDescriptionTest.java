@@ -1,16 +1,16 @@
 package us.ihmc.tools.nativelibraries;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import org.apache.commons.lang3.SystemUtils;
-import org.junit.Test;
 
 import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Platform;
 
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 public class DefaultNativeLibraryDescriptionTest
 {
-   @Test(timeout = 30000)
+   @Test
    public void testContructNativeLibraryDescription()
    {
       String packageName = "us.ihmc.native";
