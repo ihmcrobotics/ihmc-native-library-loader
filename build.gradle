@@ -15,5 +15,5 @@ ihmc {
 }
 
 mainDependencies {
-   compile("org.apache.commons:commons-lang3:3.8.1")
+   compile("org.apache.commons:commons-lang3:3.9")
 }
