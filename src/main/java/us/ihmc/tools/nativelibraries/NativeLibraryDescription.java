@@ -4,7 +4,7 @@ public interface NativeLibraryDescription
 {
    public enum Platform
    {
-      WIN64, MACOSX64, LINUX64
+      WIN32, WIN64, MACOSX64, LINUX32, LINUX64
    }
    
    /**

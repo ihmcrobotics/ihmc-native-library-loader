@@ -14,7 +14,9 @@ import java.util.HashSet;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.lang3.ArchUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.arch.Processor;
 
 import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Platform;
 
@@ -171,13 +173,21 @@ public class NativeLibraryLoader
    public synchronized static boolean loadLibrary(NativeLibraryDescription libraryDescription)
    {
       Platform platform;
-      if (SystemUtils.IS_OS_WINDOWS && isX86_64())
+      if (SystemUtils.IS_OS_WINDOWS && isX86_32())
+      {
+         platform = Platform.WIN32;
+      }
+      else if (SystemUtils.IS_OS_WINDOWS && isX86_64())
       {
          platform = Platform.WIN64;
       }
       else if (SystemUtils.IS_OS_MAC && isX86_64())
       {
          platform = Platform.MACOSX64;
+      }
+      else if (SystemUtils.IS_OS_LINUX && isX86_32())
+      {
+         platform = Platform.LINUX32;
       }
       else if (SystemUtils.IS_OS_LINUX && isX86_64())
       {
@@ -272,8 +282,15 @@ public class NativeLibraryLoader
 
    }
 
+   private static boolean isX86_32()
+   {
+      Processor processor = ArchUtils.getProcessor();
+      return processor.isX86() && processor.is32Bit();
+   }
+
    private static boolean isX86_64()
    {
-      return System.getProperty("os.arch").contains("64");
+      Processor processor = ArchUtils.getProcessor();
+      return processor.isX86() && processor.is64Bit();
    }
 }
