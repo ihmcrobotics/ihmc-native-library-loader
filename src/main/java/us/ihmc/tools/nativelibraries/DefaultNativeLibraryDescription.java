@@ -4,11 +4,11 @@ public class DefaultNativeLibraryDescription implements NativeLibraryDescription
 {
    private final String packageName;
    private final String[] libraryNames;
-   
+
    public DefaultNativeLibraryDescription(String packageName, String libraryName)
    {
       this.packageName = packageName;
-      this.libraryNames = new String[] { System.mapLibraryName(libraryName).replace(".jnilib", ".dylib") };
+      this.libraryNames = new String[] {System.mapLibraryName(libraryName).replace(".jnilib", ".dylib")};
    }
 
    @Override

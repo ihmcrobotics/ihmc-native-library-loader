@@ -24,7 +24,6 @@ import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Platform;
  * Helper class that unpacks and optionally loads native libraries
  * 
  * @author Jesper Smith
- *
  */
 public class NativeLibraryLoader
 {
@@ -37,8 +36,9 @@ public class NativeLibraryLoader
       // Disallow construction
    }
 
-   /** 
-    * Convenience method to load a single library that's available on all platforms. Throws a UnsatisfiedLinkError if the library cannot be found.
+   /**
+    * Convenience method to load a single library that's available on all platforms. Throws a
+    * UnsatisfiedLinkError if the library cannot be found.
     * 
     * @param packageName
     * @param libraryName
@@ -64,11 +64,12 @@ public class NativeLibraryLoader
    }
 
    /**
-    * Extract multiple JNA libraries. Returns the full path to the containing directory. DirectoryName is based on the first library name.
+    * Extract multiple JNA libraries. Returns the full path to the containing directory. DirectoryName
+    * is based on the first library name.
+    * 
     * @param packageName Name of the package
     * @param mainLibrary Name of the main library. A SHA-1 hash is taken of this library.
-    * @param libraries Names of the libraries
-    * 
+    * @param libraries   Names of the libraries
     * @return Full path to the directory containing the libraries
     */
    public static String extractLibraries(String packageName, String mainLibrary, String... libraries)
@@ -102,7 +103,7 @@ public class NativeLibraryLoader
             }
          }
       }
-      
+
       return containingDirectory.getAbsolutePath();
 
    }
