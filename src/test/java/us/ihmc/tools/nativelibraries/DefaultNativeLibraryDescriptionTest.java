@@ -20,25 +20,25 @@ public class DefaultNativeLibraryDescriptionTest
       String linuxCorrectName = "lib" + libraryName + ".so";
       DefaultNativeLibraryDescription defaultNativeLibraryDescription = new DefaultNativeLibraryDescription(packageName, libraryName);
       
-      assertEquals("Package name not set.", packageName, defaultNativeLibraryDescription.getPackage());
+      assertEquals(packageName, defaultNativeLibraryDescription.getPackage(), "Package name not set.");
       
       if (SystemUtils.IS_OS_WINDOWS)
       {
          String actualName = defaultNativeLibraryDescription.getLibraries(Platform.WIN64)[0];
          System.out.println(windowsCorrectName + " =? " + actualName);
-         assertEquals("Library name not correct on Windows.", windowsCorrectName, actualName);
+         assertEquals(windowsCorrectName, actualName, "Library name not correct on Windows.");
       }
       else if (SystemUtils.IS_OS_MAC)
       {
          String actualName = defaultNativeLibraryDescription.getLibraries(Platform.MACOSX64)[0];
          System.out.println(macCorrectName + " =? " + actualName);
-         assertEquals("Library name not correct on Mac.", macCorrectName, actualName);
+         assertEquals(macCorrectName, actualName, "Library name not correct on Mac.");
       }
       else if (SystemUtils.IS_OS_LINUX)
       {
          String actualName = defaultNativeLibraryDescription.getLibraries(Platform.LINUX64)[0];
          System.out.println(linuxCorrectName + " =? " + actualName);
-         assertEquals("Library name not correct on Linux.", linuxCorrectName, actualName);
+         assertEquals(linuxCorrectName, actualName, "Library name not correct on Linux.");
       }
       else
       {
