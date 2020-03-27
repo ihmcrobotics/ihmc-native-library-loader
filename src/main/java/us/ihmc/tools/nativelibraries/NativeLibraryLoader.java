@@ -95,17 +95,17 @@ public class NativeLibraryLoader
 
       try
       {
-         List<InputStream> inputStreams = getInputstreams(packageName, library);
-         String hash = getHash(inputStreams);
-   
+         
+         String hash = getHash(packageName, library);
+         
          if (extractedLibraries.containsKey(hash))
          {
-            closeInputStreams(inputStreams);
             return extractedLibraries.get(hash);
          }
    
          String prefix = createPackagePrefix(packageName);
-         File directory = new File(LIBRARY_LOCATION + "/" + prefix);
+         File packageDirectory = new File(LIBRARY_LOCATION, prefix);
+         File directory = new File(packageDirectory, hash);
          if (!directory.exists())
          {
             directory.mkdirs();
@@ -113,6 +113,8 @@ public class NativeLibraryLoader
    
          List<String> libraryFiles = new ArrayList<>();
    
+         List<InputStream> inputStreams = getInputstreams(packageName, library);
+
          libraryFiles.add(extractFile(directory, library.getLibraryFilename(), inputStreams.get(0)));
    
          for (int i = 1; i < inputStreams.size(); i++)
@@ -280,8 +282,10 @@ public class NativeLibraryLoader
 
    }
 
-   private static String getHash(List<InputStream> inputStreams) throws IOException, NoSuchAlgorithmException
+   private static String getHash(String packageName, NativeLibraryWithDependencies nativeLibrary) throws IOException, NoSuchAlgorithmException
    {
+      List<InputStream> inputStreams = getInputstreams(packageName, nativeLibrary);
+      
       MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
 
       for (InputStream is : inputStreams)
@@ -293,6 +297,7 @@ public class NativeLibraryLoader
             ;
       }
 
+      closeInputStreams(inputStreams);
       return DatatypeConverter.printHexBinary(messageDigest.digest());
 
    }
