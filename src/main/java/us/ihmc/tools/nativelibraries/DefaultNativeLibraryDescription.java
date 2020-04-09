@@ -3,12 +3,12 @@ package us.ihmc.tools.nativelibraries;
 public class DefaultNativeLibraryDescription implements NativeLibraryDescription
 {
    private final String packageName;
-   private final String[] libraryNames;
+   private final NativeLibraryWithDependencies[] libraries;
 
    public DefaultNativeLibraryDescription(String packageName, String libraryName)
    {
       this.packageName = packageName;
-      this.libraryNames = new String[] {System.mapLibraryName(libraryName).replace(".jnilib", ".dylib")};
+      this.libraries = new NativeLibraryWithDependencies[] { NativeLibraryWithDependencies.fromPlatform(libraryName) };
    }
 
    @Override
@@ -17,9 +17,10 @@ public class DefaultNativeLibraryDescription implements NativeLibraryDescription
       return packageName;
    }
 
-   @Override
-   public String[] getLibraries(Platform platform)
+   @Override   
+   public NativeLibraryWithDependencies[] getLibrariesWithDependencies(Platform platform)
    {
-      return libraryNames;
+      return libraries;
    }
+
 }
