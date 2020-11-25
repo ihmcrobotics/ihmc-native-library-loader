@@ -15,6 +15,6 @@ ihmc {
 }
 
 mainDependencies {
-   api("org.apache.commons:commons-lang3:3.9")
+   api("org.apache.commons:commons-lang3:3.11")
    api("jakarta.xml.bind:jakarta.xml.bind-api:2.3.2")
 }
