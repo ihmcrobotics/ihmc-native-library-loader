@@ -1,16 +1,16 @@
 package us.ihmc.tools.nativelibraries;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -28,7 +28,7 @@ import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Platform;
 public class NativeLibraryLoader
 {
    public final static String LIBRARY_LOCATION = new File(System.getProperty("user.home"), ".ihmc" + File.separator + "lib").getAbsolutePath();
-   private static final HashMap<URL, String> extractedLibraries = new HashMap<>();
+   private static final HashMap<String, List<String>> extractedLibraries = new HashMap<>();
    private static final HashSet<String> loadedLibraries = new HashSet<>();
 
    private NativeLibraryLoader()
@@ -60,7 +60,7 @@ public class NativeLibraryLoader
     */
    public static String extractLibrary(String packageName, String libraryName)
    {
-      return extractLibraryAbsolute(packageName, System.mapLibraryName(libraryName));
+      return extractLibraryWithDependenciesAbsolute(packageName, NativeLibraryWithDependencies.fromPlatform(libraryName)).get(0);
    }
 
    /**
@@ -74,95 +74,64 @@ public class NativeLibraryLoader
     */
    public static String extractLibraries(String packageName, String mainLibrary, String... libraries)
    {
-      File firstLibrary = new File(extractLibrary(packageName, mainLibrary));
-      File containingDirectory = firstLibrary.getParentFile();
 
-      String prefix = createPackagePrefix(packageName);
-      for (String library : libraries)
-      {
-         String libraryMapped = System.mapLibraryName(library);
-         File target = new File(containingDirectory, libraryMapped);
-         if (!target.exists())
-         {
-            try
-            {
-               InputStream stream = NativeLibraryLoader.class.getClassLoader().getResourceAsStream(prefix + libraryMapped);
-               FileOutputStream out = new FileOutputStream(target);
-               byte[] buf = new byte[1024];
-               int len;
-               while ((len = stream.read(buf)) > 0)
-               {
-                  out.write(buf, 0, len);
-               }
+      NativeLibraryWithDependencies library = NativeLibraryWithDependencies.fromPlatform(mainLibrary, libraries);
 
-               out.close();
-            }
-            catch (IOException e)
-            {
+      List<String> extracted = extractLibraryWithDependenciesAbsolute(packageName, library);
 
-            }
-         }
-      }
-
-      return containingDirectory.getAbsolutePath();
+      return extracted.get(0);
 
    }
-
+   
+   @Deprecated
    public static String extractLibraryAbsolute(String packageName, String library)
    {
-      String prefix = createPackagePrefix(packageName);
-      URL libraryURL = NativeLibraryLoader.class.getClassLoader().getResource(prefix + library);
+      NativeLibraryWithDependencies libraryWithDependencies = NativeLibraryWithDependencies.fromFilename(library);
+      return extractLibraryWithDependenciesAbsolute(packageName, libraryWithDependencies).get(0);
+   }
 
-      if (libraryURL == null)
-      {
-         throw new UnsatisfiedLinkError("Cannot load library " + prefix + library);
-      }
-
-      if (extractedLibraries.containsKey(libraryURL))
-      {
-         return extractedLibraries.get(libraryURL);
-      }
-
-      // Try to load the library directly. If not possible, fall trough and unpack to temp directory
-      if ("file".equals(libraryURL.getProtocol()))
-      {
-         try
-         {
-            File libraryFile = new File(libraryURL.toURI());
-            if (libraryFile.canRead())
-            {
-               String absolutePath = libraryFile.getAbsolutePath();
-               extractedLibraries.put(libraryURL, absolutePath);
-               return absolutePath;
-            }
-         }
-         catch (URISyntaxException e)
-         {
-         }
-      }
-
-      File directory = new File(LIBRARY_LOCATION + "/" + prefix);
-      if (!directory.exists())
-      {
-         directory.mkdirs();
-      }
-      InputStream stream = NativeLibraryLoader.class.getClassLoader().getResourceAsStream(prefix + library);
-      if (stream == null)
-      {
-         throw new UnsatisfiedLinkError("Cannot load library " + prefix + library);
-      }
-      File lib = writeStreamToFile(stream, library, directory);
+   public synchronized static List<String> extractLibraryWithDependenciesAbsolute(String packageName, NativeLibraryWithDependencies library)
+   {
 
       try
       {
-         stream.close();
+         
+         String hash = getHash(packageName, library);
+         
+         if (extractedLibraries.containsKey(hash))
+         {
+            return extractedLibraries.get(hash);
+         }
+   
+         String prefix = createPackagePrefix(packageName);
+         File packageDirectory = new File(LIBRARY_LOCATION, prefix);
+         File directory = new File(packageDirectory, hash);
+         if (!directory.exists())
+         {
+            directory.mkdirs();
+         }
+   
+         List<String> libraryFiles = new ArrayList<>();
+   
+         List<InputStream> inputStreams = getInputstreams(packageName, library);
+
+         libraryFiles.add(extractFile(directory, library.getLibraryFilename(), inputStreams.get(0)));
+   
+         for (int i = 1; i < inputStreams.size(); i++)
+         {
+            libraryFiles.add(extractFile(directory, library.getDependencyFilenames()[i - 1], inputStreams.get(i)));
+         }
+         
+         closeInputStreams(inputStreams);
+   
+         extractedLibraries.put(hash, libraryFiles);
+         return libraryFiles;
       }
-      catch (IOException e)
+      catch(IOException | NoSuchAlgorithmException e)
       {
+         throw new UnsatisfiedLinkError(e.getMessage());
       }
-      String absolutePath = lib.getAbsolutePath();
-      extractedLibraries.put(libraryURL, absolutePath);
-      return absolutePath;
+      
    }
 
    /**
@@ -201,7 +170,7 @@ public class NativeLibraryLoader
       }
 
       String packageName = libraryDescription.getPackage();
-      String[] libraries = libraryDescription.getLibraries(platform);
+      NativeLibraryWithDependencies[] libraries = libraryDescription.getLibrariesWithDependencies(platform);
       if (libraries == null || libraries.length == 0)
       {
          return false;
@@ -209,9 +178,9 @@ public class NativeLibraryLoader
 
       try
       {
-         for (String library : libraries)
+         for (NativeLibraryWithDependencies library : libraries)
          {
-            loadLibraryFromClassPath(packageName, library);
+            loadLibraryFromClassPath(platform, packageName, library);
          }
       }
       catch (UnsatisfiedLinkError e)
@@ -223,12 +192,27 @@ public class NativeLibraryLoader
       return true;
    }
 
-   private synchronized static void loadLibraryFromClassPath(String packageName, String library)
+   private synchronized static void loadLibraryFromClassPath(Platform platform, String packageName, NativeLibraryWithDependencies library)
    {
-      String identifier = packageName + "+" + library;
+      String identifier = packageName + "+" + library.getLibraryFilename();
+      
+            
       if (!loadedLibraries.contains(identifier))
       {
-         System.load(extractLibraryAbsolute(packageName, library));
+         List<String> libraries = extractLibraryWithDependenciesAbsolute(packageName, library);
+
+         
+         // On windows, load the dependencies before loading the actual plugin
+         if(platform == Platform.WIN32 || platform == Platform.WIN64)
+         {
+            // Dependencies are libraries 1 - n. Load these first
+            for(int i = 1; i < libraries.size(); i++)
+            {
+               System.load(libraries.get(i));
+            }
+         }
+         
+         System.load(libraries.get(0));
          loadedLibraries.add(identifier);
       }
    }
@@ -243,43 +227,78 @@ public class NativeLibraryLoader
       return packageName;
    }
 
-   private static File writeStreamToFile(InputStream stream, String libraryName, File directory)
+   private static String extractFile(File target, String name, InputStream inputStream) throws IOException
    {
-      try
+      File targetFile = new File(target, name);
+      if (!targetFile.exists())
       {
-         MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
-         DigestInputStream digestStream = new DigestInputStream(stream, messageDigest);
-         File file = File.createTempFile(".NativeLibraryLoader", "Tmp", directory);
-         FileOutputStream out = new FileOutputStream(file);
+         Files.copy(inputStream, targetFile.toPath());
+      }
+
+      return targetFile.getAbsolutePath();
+   }
+
+   private static void closeInputStreams(List<InputStream> inputStreams)
+   {
+      for (InputStream is : inputStreams)
+      {
+         try
+         {
+            is.close();
+         }
+         catch (IOException e)
+         {
+         }
+      }
+   }
+
+   private static List<InputStream> getInputstreams(String packageName, NativeLibraryWithDependencies nativeLibrary)
+   {
+      String prefix = createPackagePrefix(packageName);
+
+      ArrayList<InputStream> inputStreams = new ArrayList<>();
+      InputStream libraryInputStream = NativeLibraryLoader.class.getClassLoader().getResourceAsStream(prefix + nativeLibrary.getLibraryFilename());
+
+      if (libraryInputStream == null)
+      {
+         throw new UnsatisfiedLinkError("Cannot load library " + prefix + nativeLibrary.getLibraryFilename());
+      }
+
+      inputStreams.add(libraryInputStream);
+
+      for (String dependency : nativeLibrary.getDependencyFilenames())
+      {
+         InputStream dependencyLibrary = NativeLibraryLoader.class.getClassLoader().getResourceAsStream(prefix + dependency);
+
+         if (dependencyLibrary == null)
+         {
+            throw new UnsatisfiedLinkError("Cannot load library " + prefix + dependency);
+         }
+
+         inputStreams.add(dependencyLibrary);
+      }
+
+      return inputStreams;
+
+   }
+
+   private static String getHash(String packageName, NativeLibraryWithDependencies nativeLibrary) throws IOException, NoSuchAlgorithmException
+   {
+      List<InputStream> inputStreams = getInputstreams(packageName, nativeLibrary);
+      
+      MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+
+      for (InputStream is : inputStreams)
+      {
+         DigestInputStream digestStream = new DigestInputStream(is, messageDigest);
          byte[] buf = new byte[1024];
-         int len;
-         while ((len = digestStream.read(buf)) > 0)
-         {
-            out.write(buf, 0, len);
-         }
 
-         out.close();
-
-         String subdirectoryName = DatatypeConverter.printHexBinary(messageDigest.digest());
-         File subDirectory = new File(directory, subdirectoryName);
-         File target = new File(subDirectory, libraryName);
-
-         if (!target.exists())
-         {
-            subDirectory.mkdirs();
-            file.renameTo(target);
-         }
-         else
-         {
-            file.delete();
-         }
-         return target;
-
+         while (digestStream.read(buf) > 0)
+            ;
       }
-      catch (IOException | NoSuchAlgorithmException e)
-      {
-         throw new RuntimeException(e);
-      }
+
+      closeInputStreams(inputStreams);
+      return DatatypeConverter.printHexBinary(messageDigest.digest());
 
    }
 
