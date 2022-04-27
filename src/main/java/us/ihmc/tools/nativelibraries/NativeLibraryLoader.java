@@ -159,7 +159,7 @@ public class NativeLibraryLoader
       {
          platform = Platform.LINUX32;
       }
-      else if (SystemUtils.IS_OS_LINUX && isX86_64())
+      else if (SystemUtils.IS_OS_LINUX && (isX86_64() || isARM_64()))
       {
          platform = Platform.LINUX64;
       }
@@ -302,15 +302,31 @@ public class NativeLibraryLoader
 
    }
 
+   private static boolean isARM_64()
+   {
+	  return SystemUtils.OS_ARCH.equals("aarch64");
+   }
+   
+
    private static boolean isX86_32()
    {
       Processor processor = ArchUtils.getProcessor();
-      return processor.isX86() && processor.is32Bit();
+      if (processor != null) {
+          return processor.isX86() && processor.is32Bit();
+      } else {
+    	  return false;
+      }
+
    }
 
    private static boolean isX86_64()
    {
       Processor processor = ArchUtils.getProcessor();
-      return processor.isX86() && processor.is64Bit();
+      if (processor != null) {
+    	  return processor.isX86() && processor.is64Bit();
+      }
+      else {
+    	  return false;
+      }
    }
 }
