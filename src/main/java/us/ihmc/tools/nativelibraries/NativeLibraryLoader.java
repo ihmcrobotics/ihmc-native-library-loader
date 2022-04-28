@@ -18,7 +18,8 @@ import org.apache.commons.lang3.ArchUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.arch.Processor;
 
-import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Platform;
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Architecture;
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.OperatingSystem;
 
 /**
  * Helper class that unpacks and optionally loads native libraries
@@ -60,7 +61,7 @@ public class NativeLibraryLoader
     */
    public static String extractLibrary(String packageName, String libraryName)
    {
-      return extractLibraryWithDependenciesAbsolute(packageName, NativeLibraryWithDependencies.fromPlatform(libraryName)).get(0);
+      return extractLibraries(packageName, libraryName);
    }
 
    /**
@@ -70,26 +71,28 @@ public class NativeLibraryLoader
     * @param packageName Name of the package
     * @param mainLibrary Name of the main library. A SHA-1 hash is taken of this library.
     * @param libraries   Names of the libraries
-    * @return Full path to the directory containing the libraries
+    * @return Full path to the mainLibrary
     */
    public static String extractLibraries(String packageName, String mainLibrary, String... libraries)
    {
 
-      NativeLibraryWithDependencies library = NativeLibraryWithDependencies.fromPlatform(mainLibrary, libraries);
+      NativeLibraryWithDependencies library = NativeLibraryWithDependencies.fromPlatform(getOS(), getArchitecture(), mainLibrary, libraries);
 
       List<String> extracted = extractLibraryWithDependenciesAbsolute(packageName, library);
 
       return extracted.get(0);
 
    }
-   
-   @Deprecated
-   public static String extractLibraryAbsolute(String packageName, String library)
-   {
-      NativeLibraryWithDependencies libraryWithDependencies = NativeLibraryWithDependencies.fromFilename(library);
-      return extractLibraryWithDependenciesAbsolute(packageName, libraryWithDependencies).get(0);
-   }
 
+   /**
+    * Extract multiple JNA libraries.  
+    * 
+    * DirectoryName is based on the first library name.
+    * 
+    * @param packageName Name of the package
+    * @param library NativeLibrary description of the libraries
+    * @return List with paths to the libraries
+    */
    public synchronized static List<String> extractLibraryWithDependenciesAbsolute(String packageName, NativeLibraryWithDependencies library)
    {
 
@@ -142,42 +145,18 @@ public class NativeLibraryLoader
     */
    public synchronized static boolean loadLibrary(NativeLibraryDescription libraryDescription)
    {
-      Platform platform;
-      if (SystemUtils.IS_OS_WINDOWS && isX86_32())
-      {
-         platform = Platform.WIN32;
-      }
-      else if (SystemUtils.IS_OS_WINDOWS && isX86_64())
-      {
-         platform = Platform.WIN64;
-      }
-      else if (SystemUtils.IS_OS_MAC && isX86_64())
-      {
-         platform = Platform.MACOSX64;
-      }
-      else if (SystemUtils.IS_OS_LINUX && isX86_32())
-      {
-         platform = Platform.LINUX32;
-      }
-      else if (SystemUtils.IS_OS_LINUX && (isX86_64() || isARM_64()))
-      {
-         platform = Platform.LINUX64;
-      }
-      else
-      {
-         System.err.println("Cannot load library. Platform not supported");
-         return false;
-      }
-
-      String packageName = libraryDescription.getPackage();
-      NativeLibraryWithDependencies[] libraries = libraryDescription.getLibrariesWithDependencies(platform);
-      if (libraries == null || libraries.length == 0)
-      {
-         return false;
-      }
-
       try
       {
+         Architecture arch = getArchitecture();
+         OperatingSystem platform = getOS();
+
+         String packageName = libraryDescription.getPackage();
+         NativeLibraryWithDependencies[] libraries = libraryDescription.getLibrariesWithDependencies(platform, arch);
+         if (libraries == null || libraries.length == 0)
+         {
+            return false;
+         }
+
          for (NativeLibraryWithDependencies library : libraries)
          {
             loadLibraryFromClassPath(platform, packageName, library);
@@ -192,7 +171,44 @@ public class NativeLibraryLoader
       return true;
    }
 
-   private synchronized static void loadLibraryFromClassPath(Platform platform, String packageName, NativeLibraryWithDependencies library)
+   private static OperatingSystem getOS()
+   {
+      if (SystemUtils.IS_OS_WINDOWS)
+      {
+         return OperatingSystem.WIN64;
+      }
+      else if (SystemUtils.IS_OS_MAC)
+      {
+         return OperatingSystem.MACOSX64;
+      }
+      else if (SystemUtils.IS_OS_LINUX)
+      {
+         return OperatingSystem.LINUX64;
+      }
+      else
+      {
+         throw new UnsatisfiedLinkError("Cannot load library. Operating system not supported by native library loader: " + SystemUtils.OS_NAME + " " + SystemUtils.OS_VERSION);
+      }
+   }
+
+   private static Architecture getArchitecture()
+   {
+      if (isARM_64())
+      {
+         return Architecture.arm64;
+      }
+      else if(isX86_64())
+      {
+         return Architecture.x64;
+      }
+      else
+      {
+         throw new UnsatisfiedLinkError("Cannot load library. Architecture not supported by native library loader: " + SystemUtils.OS_ARCH);
+         
+      }
+   }
+
+   private synchronized static void loadLibraryFromClassPath(OperatingSystem os, String packageName, NativeLibraryWithDependencies library)
    {
       String identifier = packageName + "+" + library.getLibraryFilename();
       
@@ -203,7 +219,7 @@ public class NativeLibraryLoader
 
          
          // On windows, load the dependencies before loading the actual plugin
-         if(platform == Platform.WIN32 || platform == Platform.WIN64)
+         if(os == OperatingSystem.WIN64)
          {
             // Dependencies are libraries 1 - n. Load these first
             for(int i = 1; i < libraries.size(); i++)
@@ -304,29 +320,19 @@ public class NativeLibraryLoader
 
    private static boolean isARM_64()
    {
-	  return SystemUtils.OS_ARCH.equals("aarch64");
-   }
-   
-
-   private static boolean isX86_32()
-   {
-      Processor processor = ArchUtils.getProcessor();
-      if (processor != null) {
-          return processor.isX86() && processor.is32Bit();
-      } else {
-    	  return false;
-      }
-
+      return SystemUtils.OS_ARCH.equals("aarch64");
    }
 
    private static boolean isX86_64()
    {
       Processor processor = ArchUtils.getProcessor();
-      if (processor != null) {
-    	  return processor.isX86() && processor.is64Bit();
+      if (processor != null)
+      {
+         return processor.isX86() && processor.is64Bit();
       }
-      else {
-    	  return false;
+      else
+      {
+         return false;
       }
    }
 }
