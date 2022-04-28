@@ -16,7 +16,7 @@ public interface NativeLibraryDescription
        */
       x64,
       /**
-       * Arm 64 bit instruction set. 
+       * Arm 64 bit instruction set, also known as aarch64
        */
       arm64
    }

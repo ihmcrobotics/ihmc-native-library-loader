@@ -65,7 +65,7 @@ public class NativeLibraryLoader
    }
 
    /**
-    * Extract multiple JNA libraries. Returns the full path to the containing directory. DirectoryName
+    * Extract multiple JNA libraries. Returns the full path to the first library. The path 
     * is based on the first library name.
     * 
     * @param packageName Name of the package
@@ -87,7 +87,7 @@ public class NativeLibraryLoader
    /**
     * Extract multiple JNA libraries.  
     * 
-    * DirectoryName is based on the first library name.
+    * The extraction path is based on the first library name.
     * 
     * @param packageName Name of the package
     * @param library NativeLibrary description of the libraries
@@ -141,7 +141,7 @@ public class NativeLibraryLoader
     * Tries to load libraries in libraryDescription. Returns false if libraries cannot be loaded
     * 
     * @param libraryDescription
-    * @return
+    * @return true if the library is loaded
     */
    public synchronized static boolean loadLibrary(NativeLibraryDescription libraryDescription)
    {
