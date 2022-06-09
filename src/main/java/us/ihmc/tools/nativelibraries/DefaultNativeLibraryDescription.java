@@ -1,8 +1,5 @@
 package us.ihmc.tools.nativelibraries;
 
-import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Architecture;
-import us.ihmc.tools.nativelibraries.NativeLibraryDescription.OperatingSystem;
-
 public class DefaultNativeLibraryDescription implements NativeLibraryDescription
 {
    private final String packageName;
@@ -22,9 +19,9 @@ public class DefaultNativeLibraryDescription implements NativeLibraryDescription
    }
 
    @Override   
-   public NativeLibraryWithDependencies[] getLibrariesWithDependencies(OperatingSystem platform, Architecture arch)
+   public NativeLibraryWithDependencies getLibraryWithDependencies(OperatingSystem platform, Architecture arch)
    {
-      return new NativeLibraryWithDependencies[] { NativeLibraryWithDependencies.fromPlatform(platform, arch, libraryName) };
+      return NativeLibraryWithDependencies.fromPlatform(platform, arch, libraryName);
    }
 
 }

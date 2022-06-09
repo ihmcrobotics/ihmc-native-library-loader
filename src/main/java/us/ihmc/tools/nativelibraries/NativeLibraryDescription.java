@@ -29,7 +29,7 @@ public interface NativeLibraryDescription
    public String getPackage(OperatingSystem operatingSystem, Architecture arch);
 
    /**
-    * Get a list of libraries and their dependencies to load for current platform. 
+    * Get a library name and its dependency to load for current platform. 
     * 
     * On Windows, the dependencies are loaded in order. On other systems, you need to make sure to set the RPATH to $ORIGIN (Unix) or @rpath (MacOSX) to load the dependencies.
     * 
@@ -37,7 +37,7 @@ public interface NativeLibraryDescription
     * @param arch Get libraries for given architecture
     * @return List The libraries to load in order, with their dependencies
     */
-   NativeLibraryWithDependencies[] getLibrariesWithDependencies(OperatingSystem operatingSystem, Architecture arch);
+   NativeLibraryWithDependencies getLibraryWithDependencies(OperatingSystem operatingSystem, Architecture arch);
    
    
 }

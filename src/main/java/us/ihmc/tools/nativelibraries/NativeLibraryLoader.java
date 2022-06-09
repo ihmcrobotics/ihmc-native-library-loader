@@ -151,16 +151,13 @@ public class NativeLibraryLoader
          OperatingSystem platform = getOS();
 
          String packageName = libraryDescription.getPackage(platform, arch);
-         NativeLibraryWithDependencies[] libraries = libraryDescription.getLibrariesWithDependencies(platform, arch);
-         if (libraries == null || libraries.length == 0)
+         NativeLibraryWithDependencies library = libraryDescription.getLibraryWithDependencies(platform, arch);
+         if (library == null)
          {
             return false;
          }
 
-         for (NativeLibraryWithDependencies library : libraries)
-         {
-            loadLibraryFromClassPath(platform, packageName, library);
-         }
+         loadLibraryFromClassPath(platform, packageName, library);
       }
       catch (UnsatisfiedLinkError e)
       {
