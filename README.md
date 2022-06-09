@@ -20,8 +20,8 @@ NativeLibraryLoader.loadLibrary("package.path.to.library", "LibraryName");
 
 The loader maps the name using the following rules:
 
-Windows: [LibraryName][-arch].dll
-Linux: lib[LibraryName][-arch].so
-Mac OS X: lib[LibraryName][-arch].dylib
+- Windows: \[LibraryName]\[-arch].dll
+- Linux: lib\[LibraryName]\[-arch].so
+- Mac OS X: lib\[LibraryName]\[-arch].dylib
 
 Where [-arch] is empty for x86 and `-arm64` for amd64.

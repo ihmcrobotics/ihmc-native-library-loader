@@ -1,5 +1,8 @@
 package us.ihmc.tools.nativelibraries;
 
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Architecture;
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.OperatingSystem;
+
 public class DefaultNativeLibraryDescription implements NativeLibraryDescription
 {
    private final String packageName;
@@ -13,7 +16,7 @@ public class DefaultNativeLibraryDescription implements NativeLibraryDescription
    }
 
    @Override
-   public String getPackage()
+   public String getPackage(OperatingSystem operatingSystem, Architecture arch)
    {
       return packageName;
    }

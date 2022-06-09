@@ -26,7 +26,7 @@ public interface NativeLibraryDescription
     * 
     * @return
     */
-   public String getPackage();
+   public String getPackage(OperatingSystem operatingSystem, Architecture arch);
 
    /**
     * Get a list of libraries and their dependencies to load for current platform. 

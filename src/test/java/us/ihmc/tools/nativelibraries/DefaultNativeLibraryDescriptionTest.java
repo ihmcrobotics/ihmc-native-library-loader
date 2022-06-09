@@ -21,29 +21,33 @@ public class DefaultNativeLibraryDescriptionTest
       String linuxCorrectName = "lib" + libraryName + ".so";
       DefaultNativeLibraryDescription defaultNativeLibraryDescription = new DefaultNativeLibraryDescription(packageName, libraryName);
       
-      assertEquals(packageName, defaultNativeLibraryDescription.getPackage(), "Package name not set.");
       
-      if (SystemUtils.IS_OS_WINDOWS)
+      
+      
+      
       {
+         assertEquals(packageName, defaultNativeLibraryDescription.getPackage(OperatingSystem.WIN64, Architecture.x64), "Package name not set.");
+         
          String actualName = defaultNativeLibraryDescription.getLibrariesWithDependencies(OperatingSystem.WIN64, Architecture.x64)[0].getLibraryFilename();
          System.out.println(windowsCorrectName + " =? " + actualName);
          assertEquals(windowsCorrectName, actualName, "Library name not correct on Windows.");
       }
-      else if (SystemUtils.IS_OS_MAC)
+
       {
+         assertEquals(packageName, defaultNativeLibraryDescription.getPackage(OperatingSystem.MACOSX64, Architecture.x64), "Package name not set.");
+
          String actualName = defaultNativeLibraryDescription.getLibrariesWithDependencies(OperatingSystem.MACOSX64, Architecture.x64)[0].getLibraryFilename();
          System.out.println(macCorrectName + " =? " + actualName);
          assertEquals(macCorrectName, actualName, "Library name not correct on Mac.");
       }
-      else if (SystemUtils.IS_OS_LINUX)
+
       {
+         assertEquals(packageName, defaultNativeLibraryDescription.getPackage(OperatingSystem.LINUX64, Architecture.x64), "Package name not set.");
+
+         
          String actualName = defaultNativeLibraryDescription.getLibrariesWithDependencies(OperatingSystem.LINUX64, Architecture.x64)[0].getLibraryFilename();
          System.out.println(linuxCorrectName + " =? " + actualName);
          assertEquals(linuxCorrectName, actualName, "Library name not correct on Linux.");
-      }
-      else
-      {
-         fail("Unsupported OS.");
       }
    }
 }

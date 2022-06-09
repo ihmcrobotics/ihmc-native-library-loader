@@ -6,7 +6,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "2.0.0-halodi1"
+   version = "2.0.0-halodi2"
    vcsUrl = "https://github.com/ihmcrobotics/ihmc-native-library-loader"
    openSource = true
 

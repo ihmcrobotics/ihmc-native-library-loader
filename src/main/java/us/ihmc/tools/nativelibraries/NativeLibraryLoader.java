@@ -150,7 +150,7 @@ public class NativeLibraryLoader
          Architecture arch = getArchitecture();
          OperatingSystem platform = getOS();
 
-         String packageName = libraryDescription.getPackage();
+         String packageName = libraryDescription.getPackage(platform, arch);
          NativeLibraryWithDependencies[] libraries = libraryDescription.getLibrariesWithDependencies(platform, arch);
          if (libraries == null || libraries.length == 0)
          {
