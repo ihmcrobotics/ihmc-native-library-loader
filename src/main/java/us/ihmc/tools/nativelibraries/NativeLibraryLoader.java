@@ -81,7 +81,13 @@ public class NativeLibraryLoader
       List<String> extracted = extractLibraryWithDependenciesAbsolute(packageName, library);
 
       return extracted.get(0);
+   }
 
+   @Deprecated
+   public static String extractLibraryAbsolute(String packageName, String library)
+   {
+      NativeLibraryWithDependencies libraryWithDependencies = NativeLibraryWithDependencies.fromFilename(library);
+      return extractLibraryWithDependenciesAbsolute(packageName, libraryWithDependencies).get(0);
    }
 
    /**
