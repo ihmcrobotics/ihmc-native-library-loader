@@ -1,12 +1,11 @@
 package us.ihmc.tools.nativelibraries;
 
-import org.apache.commons.lang3.SystemUtils;
-
-import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Platform;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Architecture;
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.OperatingSystem;
 
 public class DefaultNativeLibraryDescriptionTest
 {
@@ -20,29 +19,33 @@ public class DefaultNativeLibraryDescriptionTest
       String linuxCorrectName = "lib" + libraryName + ".so";
       DefaultNativeLibraryDescription defaultNativeLibraryDescription = new DefaultNativeLibraryDescription(packageName, libraryName);
       
-      assertEquals(packageName, defaultNativeLibraryDescription.getPackage(), "Package name not set.");
       
-      if (SystemUtils.IS_OS_WINDOWS)
+      
+      
+      
       {
-         String actualName = defaultNativeLibraryDescription.getLibrariesWithDependencies(Platform.WIN64)[0].getLibraryFilename();
+         assertEquals(packageName, defaultNativeLibraryDescription.getPackage(OperatingSystem.WIN64, Architecture.x64), "Package name not set.");
+         
+         String actualName = defaultNativeLibraryDescription.getLibraryWithDependencies(OperatingSystem.WIN64, Architecture.x64).getLibraryFilename();
          System.out.println(windowsCorrectName + " =? " + actualName);
          assertEquals(windowsCorrectName, actualName, "Library name not correct on Windows.");
       }
-      else if (SystemUtils.IS_OS_MAC)
+
       {
-         String actualName = defaultNativeLibraryDescription.getLibrariesWithDependencies(Platform.MACOSX64)[0].getLibraryFilename();
+         assertEquals(packageName, defaultNativeLibraryDescription.getPackage(OperatingSystem.MACOSX64, Architecture.x64), "Package name not set.");
+
+         String actualName = defaultNativeLibraryDescription.getLibraryWithDependencies(OperatingSystem.MACOSX64, Architecture.x64).getLibraryFilename();
          System.out.println(macCorrectName + " =? " + actualName);
          assertEquals(macCorrectName, actualName, "Library name not correct on Mac.");
       }
-      else if (SystemUtils.IS_OS_LINUX)
+
       {
-         String actualName = defaultNativeLibraryDescription.getLibrariesWithDependencies(Platform.LINUX64)[0].getLibraryFilename();
+         assertEquals(packageName, defaultNativeLibraryDescription.getPackage(OperatingSystem.LINUX64, Architecture.x64), "Package name not set.");
+
+         
+         String actualName = defaultNativeLibraryDescription.getLibraryWithDependencies(OperatingSystem.LINUX64, Architecture.x64).getLibraryFilename();
          System.out.println(linuxCorrectName + " =? " + actualName);
          assertEquals(linuxCorrectName, actualName, "Library name not correct on Linux.");
-      }
-      else
-      {
-         fail("Unsupported OS.");
       }
    }
 }

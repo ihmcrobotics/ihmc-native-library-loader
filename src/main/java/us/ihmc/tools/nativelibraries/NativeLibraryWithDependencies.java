@@ -1,5 +1,8 @@
 package us.ihmc.tools.nativelibraries;
 
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Architecture;
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.OperatingSystem;
+
 public class NativeLibraryWithDependencies
 {
    private final String libraryFilename;
@@ -21,18 +24,67 @@ public class NativeLibraryWithDependencies
       return dependencyFilenames;
    }
 
-   public static String getPlatformName(String libraryName)
+   /**
+    * Get a platform specific name for a given library name. 
+    * 
+    * If the architecture is x64, no architecture string is appended. 
+    * 
+    * This does not use system.mapLibraryName to allow more control, at the cost of manually having to add new operating systems should they arrise.
+    * 
+    * Example:
+    * Library name: example
+    * 
+    * Windows: example[-arch].dll
+    * Linux: libexample[-arch].so
+    * Mac: libexample[-arch].dylib
+    * 
+    * @param operatingSystem The OS to load the library for
+    * @param arch The processor architecture to load the library for
+    * @param libraryName Name of the library
+    * 
+    * @return Library named mapped following the example
+    */
+   public static String getPlatformName(OperatingSystem operatingSystem, Architecture arch, String libraryName)
    {
-      return System.mapLibraryName(libraryName).replace(".jnilib", ".dylib");
+      String platformIdentifier;
+      switch(arch)
+      {
+         case arm64:
+            platformIdentifier = "-arm64";
+            break;
+         case x64:
+            platformIdentifier = "";
+            break;
+            
+         default:
+            throw new RuntimeException("Unsupported architecture: " + arch);
+      }
+      
+      
+      switch(operatingSystem)
+      {
+         case LINUX64:
+            return "lib" + libraryName + platformIdentifier + ".so";
+         case WIN64:
+            return libraryName + platformIdentifier + ".dll";
+         case MACOSX64:
+            return "lib" + libraryName + platformIdentifier + ".dylib";
+         default:
+            throw new RuntimeException("Unsupported operating system: " + operatingSystem);
+      }
+      
    }
 
    /**
     * Create a library description with the library names based on the current platform
     * 
+    * @param operatingSystem
+    * @param arch
     * @param libraryName
-    * @return
+    * 
+    * @return A description for the library to load
     */
-   public static NativeLibraryWithDependencies fromPlatform(String libraryName, String... dependencies)
+   public static NativeLibraryWithDependencies fromPlatform(OperatingSystem operatingSystem, Architecture arch, String libraryName, String... dependencies)
    {
       String[] platformDependencies;
       if(dependencies != null)
@@ -41,7 +93,7 @@ public class NativeLibraryWithDependencies
    
          for (int i = 0; i < dependencies.length; i++)
          {
-            platformDependencies[i] = getPlatformName(dependencies[i]);
+            platformDependencies[i] = getPlatformName(operatingSystem, arch, dependencies[i]);
          }
       }
       else
@@ -49,7 +101,7 @@ public class NativeLibraryWithDependencies
          platformDependencies = null;
       }
 
-      return new NativeLibraryWithDependencies(getPlatformName(libraryName), platformDependencies);
+      return new NativeLibraryWithDependencies(getPlatformName(operatingSystem, arch, libraryName), platformDependencies);
    }
 
    /**
