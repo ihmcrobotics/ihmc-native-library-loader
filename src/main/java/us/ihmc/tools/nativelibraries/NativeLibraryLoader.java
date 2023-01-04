@@ -214,21 +214,15 @@ public class NativeLibraryLoader
    private synchronized static void loadLibraryFromClassPath(OperatingSystem os, String packageName, NativeLibraryWithDependencies library)
    {
       String identifier = packageName + "+" + library.getLibraryFilename();
-      
-            
+
       if (!loadedLibraries.contains(identifier))
       {
          List<String> libraries = extractLibraryWithDependenciesAbsolute(packageName, library);
 
-         
-         // On windows, load the dependencies before loading the actual plugin
-         if(os == OperatingSystem.WIN64)
+         // Load dependencies before loading the actual plugin
+         for(int i = 1; i < libraries.size(); i++)
          {
-            // Dependencies are libraries 1 - n. Load these first
-            for(int i = 1; i < libraries.size(); i++)
-            {
-               System.load(libraries.get(i));
-            }
+            System.load(libraries.get(i));
          }
          
          System.load(libraries.get(0));
