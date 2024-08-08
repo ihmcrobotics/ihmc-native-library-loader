@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.xml.bind.DatatypeConverter;
-
 import org.apache.commons.lang3.ArchUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.arch.Processor;
@@ -311,7 +309,14 @@ public class NativeLibraryLoader
       }
 
       closeInputStreams(inputStreams);
-      return DatatypeConverter.printHexBinary(messageDigest.digest());
+
+      byte[] digest = messageDigest.digest();
+      StringBuilder hexString = new StringBuilder();
+      for (byte b : digest)
+      {
+         hexString.append("%02X".formatted(b));
+      }
+      return hexString.toString();
 
    }
 
