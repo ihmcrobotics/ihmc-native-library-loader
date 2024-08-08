@@ -4,6 +4,7 @@ on:
   push:
     branches: [ "develop" ]
   pull_request:
+    types: [opened, synchronize]
     branches: [ "develop" ]
   workflow_dispatch:
 
@@ -12,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
 
