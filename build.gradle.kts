@@ -12,6 +12,12 @@ ihmc {
    configurePublications()
 }
 
+tasks.jar {
+   manifest {
+      attributes("Automatic-Module-Name" to "us.ihmc.nativelibraryloader")
+   }
+}
+
 mainDependencies {
    api("org.apache.commons:commons-lang3:3.12.0")
 }
