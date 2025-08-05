@@ -18,7 +18,11 @@ public interface NativeLibraryDescription
       /**
        * Arm 64 bit instruction set, also known as aarch64
        */
-      arm64
+      arm64,
+      /**
+       * Arm 32 bit instruction set, also known as armhf
+       */
+      arm
    }
 
    /**

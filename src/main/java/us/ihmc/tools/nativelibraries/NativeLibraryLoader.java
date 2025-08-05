@@ -198,6 +198,10 @@ public class NativeLibraryLoader
       {
          return Architecture.arm64;
       }
+      else if (isARM_32())
+      {
+         return Architecture.arm;
+      }
       else if(isX86_64())
       {
          return Architecture.x64;
@@ -323,6 +327,11 @@ public class NativeLibraryLoader
    private static boolean isARM_64()
    {
       return SystemUtils.OS_ARCH.equals("aarch64");
+   }
+
+   private static boolean isARM_32()
+   {
+      return SystemUtils.OS_ARCH.equals("arm") || SystemUtils.OS_ARCH.equals("armhf") || SystemUtils.OS_ARCH.equals("armv7l");
    }
 
    private static boolean isX86_64()

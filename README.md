@@ -6,6 +6,7 @@ Simple helper library to load native libraries from a .jar bundle. Will extract 
 
 ### Processor architectures
 - x64 (also known as x86_64, AMD64)
+- ARM (also known as ARMHF)
 - ARM64 (also known as AARCH64)
 
 ### Operating systems
