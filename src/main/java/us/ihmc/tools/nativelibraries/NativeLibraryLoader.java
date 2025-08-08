@@ -1,5 +1,8 @@
 package us.ihmc.tools.nativelibraries;
 
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Architecture;
+import us.ihmc.tools.nativelibraries.NativeLibraryDescription.OperatingSystem;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,13 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-
-import org.apache.commons.lang3.ArchUtils;
-import org.apache.commons.lang3.SystemUtils;
-import org.apache.commons.lang3.arch.Processor;
-
-import us.ihmc.tools.nativelibraries.NativeLibraryDescription.Architecture;
-import us.ihmc.tools.nativelibraries.NativeLibraryDescription.OperatingSystem;
 
 /**
  * Helper class that unpacks and optionally loads native libraries
@@ -174,21 +170,23 @@ public class NativeLibraryLoader
 
    private static OperatingSystem getOS()
    {
-      if (SystemUtils.IS_OS_WINDOWS)
+      String os = System.getProperty("os.name");
+
+      if (os.contains("Windows"))
       {
          return OperatingSystem.WIN64;
       }
-      else if (SystemUtils.IS_OS_MAC)
+      else if (os.contains("Mac"))
       {
          return OperatingSystem.MACOSX64;
       }
-      else if (SystemUtils.IS_OS_LINUX)
+      else if (os.contains("Linux"))
       {
          return OperatingSystem.LINUX64;
       }
       else
       {
-         throw new UnsatisfiedLinkError("Cannot load library. Operating system not supported by native library loader: " + SystemUtils.OS_NAME + " " + SystemUtils.OS_VERSION);
+         throw new UnsatisfiedLinkError("Cannot load library. Operating system not supported by native library loader: " + os);
       }
    }
 
@@ -208,7 +206,7 @@ public class NativeLibraryLoader
       }
       else
       {
-         throw new UnsatisfiedLinkError("Cannot load library. Architecture not supported by native library loader: " + SystemUtils.OS_ARCH);
+         throw new UnsatisfiedLinkError("Cannot load library. Architecture not supported by native library loader: " + System.getProperty("os.arch"));
          
       }
    }
@@ -326,24 +324,22 @@ public class NativeLibraryLoader
 
    private static boolean isARM_64()
    {
-      return SystemUtils.OS_ARCH.equals("aarch64");
+      String arch = System.getProperty("os.arch");
+
+      return arch.equals("aarch64") || arch.equals("arm64");
    }
 
    private static boolean isARM_32()
    {
-      return SystemUtils.OS_ARCH.equals("arm") || SystemUtils.OS_ARCH.equals("armhf") || SystemUtils.OS_ARCH.equals("armv7l");
+      String arch = System.getProperty("os.arch");
+
+      return arch.equals("arm") || arch.equals("armhf") || arch.equals("armv7l");
    }
 
    private static boolean isX86_64()
    {
-      Processor processor = ArchUtils.getProcessor();
-      if (processor != null)
-      {
-         return processor.isX86() && processor.is64Bit();
-      }
-      else
-      {
-         return false;
-      }
+      String arch = System.getProperty("os.arch");
+
+      return arch.equals("amd64") || arch.equals("x86_64") || arch.equals("x64");
    }
 }
